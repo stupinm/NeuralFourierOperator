@@ -3,6 +3,7 @@ import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 import os
 
+
 def lp_loss_relative(true, pred, p=2, reduction='mean'):
     assert reduction in ['mean', 'sum', 'none']
     assert true.ndim == pred.ndim
@@ -20,13 +21,13 @@ def lp_loss_relative(true, pred, p=2, reduction='mean'):
 
 
 class Trainer:
-    def __init__(self, args, net, optimizer, scheduler, train_loader, test_loader, criterion=lp_loss_relative):
+    def __init__(self, args, net, optimizer, scheduler, train_loader, val_loader, criterion=lp_loss_relative):
         self.net = net
         self.optimizer = optimizer
         self.criterion = criterion
         self.scheduler = scheduler
         self.train_loader = train_loader
-        self.test_loader = test_loader
+        self.val_loader = val_loader
         self.unpack_args(args)
 
         predictive_mode = self.predictive_mode
@@ -92,11 +93,11 @@ class Trainer:
         return loss
 
     @torch.no_grad()
-    def test(self):
+    def validate(self):
         self.net.eval()
         test_l2_step = 0
         test_l2_full = 0
-        for inputs, labels in self.test_loader:
+        for inputs, labels in self.val_loader:
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             loss, predictions = self.basic_step(inputs, labels)
             test_l2_step += loss.item()
@@ -105,14 +106,14 @@ class Trainer:
         return test_l2_full
 
     def train(self):
-        n_train, n_test = len(self.train_loader), len(self.test_loader)
+        n_train, n_test = len(self.train_loader), len(self.val_loader)
         for epoch in range(self.n_epochs):
             loss_train = 0
             for inputs, labels in self.train_loader:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 loss_train += self.train_step(inputs, labels)
 
-            loss_test = self.test()
+            loss_test = self.validate()
             self.scheduler.step()
             self.writer.add_scalar('train_loss', loss_train.item() / n_train, epoch)
             self.writer.add_scalar('test_loss', loss_test.item() / n_test, epoch)

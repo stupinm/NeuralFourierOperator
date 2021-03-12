@@ -1,7 +1,7 @@
 import torch
 from neural_fourier import FourierNet
 from train import Trainer
-# from data import Data
+from data import Data
 from utils import parse_args, dump_config, mkdirs
 import sys
 
@@ -18,9 +18,9 @@ def main():
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args['scheduler_step'], gamma=args['scheduler_gamma'])
 
     data = Data(args)
-    train_loader, test_loader = data.get_dataloaders()
+    train_loader, val_loader = data.get_dataloaders()
 
-    trainer = Trainer(args, net, optimizer, scheduler, train_loader, test_loader)
+    trainer = Trainer(args, net, optimizer, scheduler, train_loader, val_loader)
     trainer.train()
 
 
