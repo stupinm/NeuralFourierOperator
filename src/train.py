@@ -8,9 +8,9 @@ def lp_loss_relative(true, pred, p=2, reduction='mean'):
     assert reduction in ['mean', 'sum', 'none']
     assert true.ndim == pred.ndim
 
-    dims = range(1, true.ndim)
-    diff_norm = torch.norm(true - pred, p, dim=dims)
-    true_norm = torch.norm(true, p, dim=dims)
+    dims = tuple(range(1, true.ndim))
+    diff_norm = torch.norm(true - pred, p=p, dim=dims)
+    true_norm = torch.norm(true, p=p, dim=dims)
 
     if reduction == 'mean':
         return torch.mean(diff_norm / true_norm)
@@ -78,7 +78,6 @@ class Trainer:
     def multiple_step_prediction(self, inputs, labels):
         predictions = self.net(inputs)
         loss = self.criterion(labels, predictions)
-
         return loss, predictions
 
     def train_step(self, inputs, labels):
@@ -100,12 +99,13 @@ class Trainer:
         for inputs, labels in self.val_loader:
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             loss, predictions = self.basic_step(inputs, labels)
-            test_l2_step += loss.item()
-            test_l2_full += self.criterion(predictions, labels).item()
+            test_l2_step += loss
+            test_l2_full += self.criterion(labels, predictions)
 
         return test_l2_full
 
     def train(self):
+        self.net.train()
         n_train, n_test = len(self.train_loader), len(self.val_loader)
         for epoch in range(self.n_epochs):
             loss_train = 0

@@ -51,10 +51,11 @@ class NeuralFourierBlock(nn.Module):
         self.shortcut = nn.Conv1d(width, width, 1)
         self.bn = torch.nn.BatchNorm2d(width)
         self.activation = activation
+        self.width = width
 
     def forward(self, x):
         batchsize = x.shape[0]
-        size_x, size_y = x.shape[1], x.shape[2]
+        size_x, size_y = x.shape[2], x.shape[3]
 
         out = self.conv(x)
         out += self.shortcut(x.view(batchsize, self.width, -1)).view(batchsize, self.width, size_x, size_y)
