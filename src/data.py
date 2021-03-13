@@ -54,7 +54,7 @@ class PDEDataset(torch_data.Dataset):
         if self.transform is not None:
             input, label = self.transform((input, label))
 
-        return input.float(), label.float()
+        return input, label
 
 
 class Data(object):
