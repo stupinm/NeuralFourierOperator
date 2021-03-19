@@ -9,6 +9,7 @@
     "learning_rate": 0.0025,
     "scheduler_step": 100,
     "scheduler_gamma": 0.5,
+    "net_arch": "2d",
     "n_layers": 4,
     "n_modes": 12,
     "width": 20,

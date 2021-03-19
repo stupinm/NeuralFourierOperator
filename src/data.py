@@ -18,7 +18,7 @@ class Downsample(object):
     def __call__(self, sample):
         input, label = sample
         s, t = self.s, self.t
-        return input[::s, ::s, ::self.t], label[::s, ::s, ::t]
+        return input[::s, ::s, ::t], label[::s, ::s, ::t]
 
 
 class PadCoordinates(object):
@@ -31,6 +31,22 @@ class PadCoordinates(object):
         gridx = torch.tensor(np.linspace(0, 1, S), dtype=torch.float32).reshape(S, 1, 1).repeat([1, S, 1])
         gridy = torch.tensor(np.linspace(0, 1, S), dtype=torch.float32).reshape(1, S, 1).repeat([S, 1, 1])
         input = torch.cat((gridx.repeat([1, 1, 1]), gridy.repeat([1, 1, 1]), input), dim=-1)
+
+        return input, label
+
+class PadCoordinates3d(object):
+    def __init__(self, S, t_out):
+        self.S = S
+        self.t_out = t_out
+
+    def __call__(self, sample):
+        S = self.S
+        T = self.t_out
+        input, label = sample
+        gridx = torch.tensor(np.linspace(0, 1, S),       dtype=torch.float32).reshape(S, 1, 1, 1).repeat([1, S, T, 1])
+        gridy = torch.tensor(np.linspace(0, 1, S),       dtype=torch.float32).reshape(1, S, 1, 1).repeat([S, 1, T, 1])
+        gridt = torch.tensor(np.linspace(0, 1, T+1)[1:], dtype=torch.float32).reshape(1, 1, T, 1).repeat([S, S, 1, 1])
+        input = torch.cat((gridx.repeat([1, 1, 1, 1]), gridy.repeat([1, 1, 1, 1], gridt.repeat([1, 1, 1, 1]), input), dim=-1)
 
         return input, label
 
@@ -88,20 +104,26 @@ class Data(object):
         return l
 
     def get_transforms(self):
+        if self.net_arch == "2d":
+            pad_class = PadCoordinates
+            pad_args = (self.S,)
+        elif self.net_arch == "3d":
+            pad_class = PadCoordinates3d
+            pad_args = (self.S, self.t_out)
         transforms_train = transforms.Compose([
             Downsample(self.s, self.t),
             ToTensor(),
-            PadCoordinates(self.S)
+            pad_class(*pad_args)
         ])
         transforms_val = transforms.Compose([
             Downsample(self.s, self.t),
             ToTensor(),
-            PadCoordinates(self.S)
+            pad_class(*pad_args)
         ])
         transforms_test = transforms.Compose([
             Downsample(self.s, self.t),
             ToTensor(),
-            PadCoordinates(self.S)
+            pad_class(*pad_args)
         ])
         return transforms_train, transforms_val, transforms_test
 

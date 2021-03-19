@@ -1,5 +1,6 @@
 import torch
 from neural_fourier import FourierNet
+from neural_fourier_3d import FourierNet3d
 from train import Trainer
 from data import Data
 from utils import parse_args, dump_config, mkdirs
@@ -16,7 +17,11 @@ def main():
     mkdirs(command, args)
     dump_config(command, config, args)
 
-    net = FourierNet(args['n_layers'], args['n_modes'], args['width'], args['t_in'], args['t_out']).to(args['device'])
+    if args['net_arch'] = '2d':
+        net_class = FourierNet
+    elif args['net_arch'] = '3d':
+        net_class = FourierNet3d
+    net = net_class(args['n_layers'], args['n_modes'], args['width'], args['t_in'], args['t_out']).to(args['device'])
     optimizer = torch.optim.Adam(net.parameters(), lr=args['learning_rate'], weight_decay=args['weight_decay'])
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args['scheduler_step'], gamma=args['scheduler_gamma'])
 
