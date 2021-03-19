@@ -114,7 +114,7 @@ class Trainer:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 loss_train += self.train_step(inputs, labels)
 
-            loss_val = self.test(self.val_loder)
+            loss_val = self.test(self.val_loader)
             self.scheduler.step()
             self.writer.add_scalar('train_loss', loss_train.item() / n_train, epoch)
             self.writer.add_scalar('val_loss', loss_val.item() / n_test, epoch)
