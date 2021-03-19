@@ -4,56 +4,59 @@ import torch.nn.functional as F
 from functools import partial
 
 
-def compl_mul2d(a, b):
-    op = partial(torch.einsum, "bctq,dctq->bdtq")
+def compl_mul3d(a, b):
+    # (batch, in_channel, x,y,t ), (in_channel, out_channel, x,y,t) -> (batch, out_channel, x,y,t)
+    op = partial(torch.einsum, "bixyz,ioxyz->boxyz")
     return torch.stack([
         op(a[..., 0], b[..., 0]) - op(a[..., 1], b[..., 1]),
         op(a[..., 1], b[..., 0]) + op(a[..., 0], b[..., 1])
     ], dim=-1)
 
 
-class SpectralConv2d(nn.Module):
+class SpectralConv3d(nn.Module):
     def __init__(self, in_channels, out_channels, n_modes):
-        super(SpectralConv2d, self).__init__()
+        super(SpectralConv3d, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.n_modes = n_modes
 
         self.scale = 1 / (in_channels * out_channels)
-        self.weights1 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, 2))
-        self.weights2 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, 2))
+        self.weights1 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, n_modes, 2))
+        self.weights2 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, n_modes, 2))
+        self.weights3 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, n_modes, 2))
+        self.weights4 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, n_modes, 2))
 
     def forward(self, x):
         n_modes = self.n_modes
         batchsize = x.shape[0]
 
-        x_ft = torch.rfft(x, 2, normalized=True, onesided=True)
+        x_ft = torch.rfft(x, 3, normalized=True, onesided=True)
 
-        out_ft = torch.zeros(batchsize, self.in_channels, x.size(-2), x.size(-1)//2 + 1, 2, device=x.device)
-        out_ft[:, :, :n_modes, :n_modes] = \
-            compl_mul2d(x_ft[:, :, :n_modes, :n_modes], self.weights1)
-        out_ft[:, :, -n_modes:, :n_modes] = \
-            compl_mul2d(x_ft[:, :, -n_modes:, :n_modes], self.weights2)
+        out_ft = torch.zeros(batchsize, self.in_channels, x.size(-3), x.size(-2), x.size(-1)//2 + 1, 2, device=x.device)
+        out_ft[:, :, :n_modes , :n_modes , :n_modes] = compl_mul3d(x_ft[:, :, :n_modes , :n_modes , :n_modes], self.weights1)
+        out_ft[:, :, -n_modes:, :n_modes , :n_modes] = compl_mul3d(x_ft[:, :, -n_modes:, :n_modes , :n_modes], self.weights2)
+        out_ft[:, :, :n_modes , -n_modes:, :n_modes] = compl_mul3d(x_ft[:, :, :n_modes , -n_modes:, :n_modes], self.weights3)
+        out_ft[:, :, -n_modes:, -n_modes:, :n_modes] = compl_mul3d(x_ft[:, :, -n_modes:, -n_modes:, :n_modes], self.weights4)
 
-        out = torch.irfft(out_ft, 2, normalized=True, onesided=True, signal_sizes=(x.size(-2), x.size(-1)))
+        out = torch.irfft(out_ft, 3, normalized=True, onesided=True, signal_sizes=(x.size(-3), x.size(-2), x.size(-1)))
         return out
 
 
-class NeuralFourierBlock(nn.Module):
+class NeuralFourierBlock3d(nn.Module):
     def __init__(self, width, n_modes, activation=True):
-        super(NeuralFourierBlock, self).__init__()
-        self.conv = SpectralConv2d(width, width, n_modes)
+        super(NeuralFourierBlock3d, self).__init__()
+        self.conv = SpectralConv3d(width, width, n_modes)
         self.shortcut = nn.Conv1d(width, width, 1)
-        self.bn = torch.nn.BatchNorm2d(width)
+        self.bn = torch.nn.BatchNorm3d(width)
         self.activation = activation
         self.width = width
 
     def forward(self, x):
         batchsize = x.shape[0]
-        size_x, size_y = x.shape[2], x.shape[3]
+        size_x, size_y, size_z = x.shape[2], x.shape[3], x.shape[4]
 
         out = self.conv(x)
-        out += self.shortcut(x.view(batchsize, self.width, -1)).view(batchsize, self.width, size_x, size_y)
+        out += self.shortcut(x.view(batchsize, self.width, -1)).view(batchsize, self.width, size_x, size_y, size_z)
         out = self.bn(out)
         if self.activation:
             out = F.relu(out)
@@ -61,15 +64,15 @@ class NeuralFourierBlock(nn.Module):
         return out
 
 
-class FourierNet(nn.Module):
+class FourierNet3d(nn.Module):
     def __init__(self, n_layers, n_modes, width, t_in, t_out):
-        super(FourierNet, self).__init__()
+        super(FourierNet3d, self).__init__()
         self.n_modes = n_modes
         self.width = width
-        self.fc0 = nn.Linear(t_in + 2, self.width)
+        self.fc0 = nn.Linear(t_in + 3, self.width)
 
-        layers = [NeuralFourierBlock(width, n_modes) for i in range(n_layers - 1)]
-        layers.append(NeuralFourierBlock(width, n_modes, activation=False))
+        layers = [NeuralFourierBlock3d(width, n_modes) for i in range(n_layers - 1)]
+        layers.append(NeuralFourierBlock3d(width, n_modes, activation=False))
         self.backbone = nn.Sequential(*layers)
 
         self.fc1 = nn.Linear(self.width, 128)
@@ -78,12 +81,12 @@ class FourierNet(nn.Module):
     def forward(self, x):
         out = self.fc0(x)
 
-        out = out.permute(0, 3, 1, 2)
+        out = out.permute(0, 4, 1, 2, 3)
         out = self.backbone(out)
-        out = out.permute(0, 2, 3, 1)
+        out = out.permute(0, 2, 3, 4, 1)
 
         out = self.fc1(out)
         out = F.relu(out)
         out = self.fc2(out)
 
-        return out
+        return out.squeeze()
