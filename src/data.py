@@ -59,14 +59,12 @@ class PDEDataset(torch_data.Dataset):
 
 class Data(object):
     def __init__(self, args):
+        self.unpack_args(args)
         self.path = os.path.join(args['datasets'], args['dataset'])
-        self.train_val_ratio = args['train_val_ratio']
-        self.num_samples = args['num_samples']
-        self.batch_size = args['batch_size']
-        self.s = args['s']
-        self.t = args['t']
-        self.ratio = args['input_output_ratio']
-        self.S = args['S']
+
+    def unpack_args(self, args):
+        for key, value in args.items():
+            setattr(self, key, value)
 
     def inspect_folder(self):
         npy_files_length = list(map(len, filter(lambda x: str.endswith(x, '.npy'), os.listdir(self.path))))
@@ -100,20 +98,38 @@ class Data(object):
             ToTensor(),
             PadCoordinates(self.S)
         ])
-        return transforms_train, transforms_val
+        transforms_test = transforms.Compose([
+            Downsample(self.s, self.t),
+            ToTensor(),
+            PadCoordinates(self.S)
+        ])
+        return transforms_train, transforms_val, transforms_test
+
+    def get_ids(self):
+        np.random.seed(self.seed)
+        permutation = np.random.permutation(self.num_samples)
+        test_len = int(self.num_samples * self.test_ratio)
+        test_len = test_len - test_len % self.batch_size
+        val_len = self.num_samples - test_len
+        val_len = val_len - val_len % self.batch_size
+        train_len = self.num_samples - test_len - val_len
+        train_ids = permutation[:train_len]
+        val_ids = permutation[train_len:train_len+val_len]
+        test_ids = permutation[-test_len:]
+
+        return train_ids, val_ids, test_ids
 
     def get_dataloaders(self):
         l = self.inspect_folder()
-        permutation = np.random.permutation(self.num_samples)
-        train_len = int(self.num_samples * self.train_val_ratio)
-        train_len = train_len - train_len % self.batch_size
-        train_ids, val_ids = permutation[:train_len], permutation[train_len:]
+        train_ids, val_ids, test_ids = self.get_ids()
 
-        transforms_train, transforms_val = self.get_transforms()
-        train_dataset = PDEDataset(self.path, train_ids, l, self.ratio, transforms_train)
-        val_dataset = PDEDataset(self.path, val_ids, l, self.ratio, transforms_val)
+        transforms_train, transforms_val, transforms_test = self.get_transforms()
+        train_dataset = PDEDataset(self.path, train_ids, l, self.input_output_ratio, transforms_train)
+        val_dataset = PDEDataset(self.path, val_ids, l, self.input_output_ratio, transforms_val)
+        test_dataset = PDEDataset(self.path, test_ids, l, self.input_output_ratio, transforms_test)
 
         train_dataloader = torch_data.DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
         val_dataloader = torch_data.DataLoader(val_dataset, batch_size=self.batch_size, shuffle=False)
+        test_dataloader = torch_data.DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 
-        return train_dataloader, val_dataloader
+        return train_dataloader, val_dataloader, test_dataloader

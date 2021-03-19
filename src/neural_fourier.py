@@ -15,11 +15,6 @@ def compl_mul2d(a, b):
 class SpectralConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, n_modes):
         super(SpectralConv2d, self).__init__()
-
-        """
-        2D Fourier layer. It does FFT, linear transform, and Inverse FFT.    
-        """
-
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.n_modes = n_modes
@@ -67,33 +62,18 @@ class NeuralFourierBlock(nn.Module):
 
 
 class FourierNet(nn.Module):
-    def __init__(self, n_layers, n_modes, width):
+    def __init__(self, n_layers, n_modes, width, t_in, t_out):
         super(FourierNet, self).__init__()
-
-        """
-        The overall network. It contains 4 layers of the Fourier layer.
-        1. Lift the input to the desire channel dimension by self.fc0 .
-        2. 4 layers of the integral operators u' = (W + K)(u).
-            W defined by self.w; K defined by self.conv .
-        3. Project from the channel space to the output space by self.fc1 and self.fc2 .
-        
-        input: the solution of the previous 10 timesteps + 2 locations (u(t-10, x, y), ..., u(t-1, x, y),  x, y)
-        input shape: (batchsize, x=64, y=64, c=12)
-        output: the solution of the next timestep
-        output shape: (batchsize, x=64, y=64, c=1)
-        """
-
         self.n_modes = n_modes
         self.width = width
-        self.fc0 = nn.Linear(12, self.width)
-        # input channel is 12: the solution of the previous 10 timesteps + 2 locations (u(t-10, x, y), ..., u(t-1, x, y),  x, y)
+        self.fc0 = nn.Linear(t_in + 2, self.width)
 
         layers = [NeuralFourierBlock(width, n_modes) for i in range(n_layers - 1)]
         layers.append(NeuralFourierBlock(width, n_modes, activation=False))
         self.backbone = nn.Sequential(*layers)
 
         self.fc1 = nn.Linear(self.width, 128)
-        self.fc2 = nn.Linear(128, 1)
+        self.fc2 = nn.Linear(128, t_out)
 
     def forward(self, x):
         out = self.fc0(x)

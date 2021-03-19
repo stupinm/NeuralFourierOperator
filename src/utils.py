@@ -9,11 +9,17 @@ def parse_args(file):
 
     return args
 
-def mkdirs(args):
+
+def mkdirs(command, args):
     exp_folder = os.path.join(args['experiments'], args['exp_name'])
-    os.mkdir(exp_folder)
-    os.mkdir(os.path.join(exp_folder, 'tensorboard'))
+    if command == 'train':
+        os.mkdir(exp_folder)
+        os.mkdir(os.path.join(exp_folder, 'tensorboard'))
+    elif command == 'predict':
+        os.mkdir(os.path.join(exp_folder, 'predictions'))
+    elif command != 'test':
+        raise ValueError(f'Unknown command: {command}')
 
 
-def dump_config(config, args):
-    copy(config, os.path.join(args['experiments'], args['exp_name'], 'config.json'))
+def dump_config(command, config, args):
+    copy(config, os.path.join(args['experiments'], args['exp_name'], f'config_{command}.json'))

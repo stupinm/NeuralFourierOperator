@@ -21,13 +21,14 @@ def lp_loss_relative(true, pred, p=2, reduction='mean'):
 
 
 class Trainer:
-    def __init__(self, args, net, optimizer, scheduler, train_loader, val_loader, criterion=lp_loss_relative):
+    def __init__(self, args, net, optimizer, scheduler, train_loader, val_loader, test_loader, criterion=lp_loss_relative):
         self.net = net
         self.optimizer = optimizer
         self.criterion = criterion
         self.scheduler = scheduler
         self.train_loader = train_loader
         self.val_loader = val_loader
+        self.test_loader = test_loader
         self.unpack_args(args)
 
         predictive_mode = self.predictive_mode
@@ -92,11 +93,11 @@ class Trainer:
         return loss
 
     @torch.no_grad()
-    def validate(self):
+    def test(self, dataloader):
         self.net.eval()
         test_l2_step = 0
         test_l2_full = 0
-        for inputs, labels in self.val_loader:
+        for inputs, labels in dataloader:
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             loss, predictions = self.basic_step(inputs, labels)
             test_l2_step += loss
@@ -113,10 +114,11 @@ class Trainer:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 loss_train += self.train_step(inputs, labels)
 
-            loss_test = self.validate()
+            loss_val = self.test(self.val_loder)
             self.scheduler.step()
             self.writer.add_scalar('train_loss', loss_train.item() / n_train, epoch)
-            self.writer.add_scalar('test_loss', loss_test.item() / n_test, epoch)
+            self.writer.add_scalar('val_loss', loss_val.item() / n_test, epoch)
+            print(f'Epoch: {epoch} train_loss: {loss_train.item() / n_train}, val_loss: {loss_val.item() / n_test}')
 
         self.save_model(epoch)
 
@@ -134,4 +136,13 @@ class Trainer:
         epoch = checkpoint['epoch']
 
         return epoch
+
+    @torch.no_grad()
+    def predict(self, dataloader):
+        dir_ = os.path.join(self.experiments, self.exp_name, 'predictions')
+        ids, l = dataloader.dataset.ids, dataloader.dataset.l
+        for (inputs, labels), idx in zip(dataloader, ids):
+            inputs, labels = inputs.to(self.device), labels.to(self.device)
+            _, predictions = self.basic_step(inputs, labels)
+            np.save(os.path.join(dir_, f'prediction_{str(idx).rjust(l, "0")}.npy'), predictions.cpu().numpy())
 
