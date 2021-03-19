@@ -110,7 +110,7 @@ class Data(object):
         permutation = np.random.permutation(self.num_samples)
         test_len = int(self.num_samples * self.test_ratio)
         test_len = test_len - test_len % self.batch_size
-        val_len = self.num_samples - test_len
+        val_len = int((self.num_samples - test_len) * self.val_ratio)
         val_len = val_len - val_len % self.batch_size
         train_len = self.num_samples - test_len - val_len
         train_ids = permutation[:train_len]
