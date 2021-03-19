@@ -139,7 +139,7 @@ class Trainer:
 
     @torch.no_grad()
     def predict(self, dataloader):
-        dir_ = os.path.join(self.experiments, self.exp_name, 'predictions')
+        dir_ = os.path.join(self.experiments, self.exp_name, 'predictions', self.predictions_path)
         ids, l = dataloader.dataset.ids, dataloader.dataset.l
         for (inputs, labels), idx in zip(dataloader, ids):
             inputs, labels = inputs.to(self.device), labels.to(self.device)

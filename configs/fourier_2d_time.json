@@ -2,6 +2,7 @@
     "command": "train",
     "exp_name": "fourier_2d_time",
     "dataset": "heat",
+    "predictions_path": "s2_t1",
     "batch_size": 20,
     "n_epochs": 500,
     "weight_decay": 0.0001,
