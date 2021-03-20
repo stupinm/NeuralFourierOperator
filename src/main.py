@@ -38,7 +38,7 @@ def main():
             elif command == 'test':
                 trainer.load_model()
                 trainer.test(test_loader)
-            if command == 'predict':
+            elif command == 'predict':
                 trainer.load_model()
                 trainer.predict(test_loader)
             else:
