@@ -18,7 +18,9 @@ def get_default_args():
         "scheduler_step": 100,
         "scheduler_gamma": 0.5,
         "n_layers": 4,
-        "n_modes": 12,
+        "n_modes_1": 12,
+        "n_modes_2": 12,
+        "n_modes_3": 12,
         "width": 20,
         "predictive_mode": "multiple_step",
         "input_output_ratio": 0.2,
@@ -44,14 +46,16 @@ def main():
     command = args['command']
 
     mkdirs(command, args)
-    dump_config(command, config, args)
+    dump_config(command, args)
 
     if args['net_arch'] == '2d':
         net_class = FourierNet
+        n_modes = (args['n_modes_1'], args['n_modes_2'])
     elif args['net_arch'] == '3d':
         net_class = FourierNet3d
+        n_modes = (args['n_modes_1'], args['n_modes_2'], args['n_modes_3'])
 
-    net = net_class(args['n_layers'], args['n_modes'], args['width'], args['t_in'], args['t_out']).to(args['device'])
+    net = net_class(args['n_layers'], n_modes, args['width'], args['t_in'], args['t_out']).to(args['device'])
     optimizer = torch.optim.Adam(net.parameters(), lr=args['learning_rate'], weight_decay=args['weight_decay'])
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args['scheduler_step'], gamma=args['scheduler_gamma'])
 

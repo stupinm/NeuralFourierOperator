@@ -18,25 +18,25 @@ class SpectralConv3d(nn.Module):
         super(SpectralConv3d, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.n_modes = n_modes
+        self.n1, self.n2, self.n3 = n_modes
 
         self.scale = 1 / (in_channels * out_channels)
-        self.weights1 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, n_modes, 2))
-        self.weights2 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, n_modes, 2))
-        self.weights3 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, n_modes, 2))
-        self.weights4 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, n_modes, n_modes, n_modes, 2))
+        self.weights1 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, self.n1, self.n2, self.n3, 2))
+        self.weights2 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, self.n1, self.n2, self.n3, 2))
+        self.weights3 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, self.n1, self.n2, self.n3, 2))
+        self.weights4 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, self.n1, self.n2, self.n3, 2))
 
     def forward(self, x):
-        n_modes = self.n_modes
+        n1, n2, n3 = self.n1, self.n2, self.n3
         batchsize = x.shape[0]
 
         x_ft = torch.rfft(x, 3, normalized=True, onesided=True)
 
         out_ft = torch.zeros(batchsize, self.in_channels, x.size(-3), x.size(-2), x.size(-1)//2 + 1, 2, device=x.device)
-        out_ft[:, :, :n_modes , :n_modes , :n_modes] = compl_mul3d(x_ft[:, :, :n_modes , :n_modes , :n_modes], self.weights1)
-        out_ft[:, :, -n_modes:, :n_modes , :n_modes] = compl_mul3d(x_ft[:, :, -n_modes:, :n_modes , :n_modes], self.weights2)
-        out_ft[:, :, :n_modes , -n_modes:, :n_modes] = compl_mul3d(x_ft[:, :, :n_modes , -n_modes:, :n_modes], self.weights3)
-        out_ft[:, :, -n_modes:, -n_modes:, :n_modes] = compl_mul3d(x_ft[:, :, -n_modes:, -n_modes:, :n_modes], self.weights4)
+        out_ft[:, :, :n1 , :n2 , :n3] = compl_mul3d(x_ft[:, :, :n1 , :n2 , :n3], self.weights1)
+        out_ft[:, :, -n1:, :n2 , :n3] = compl_mul3d(x_ft[:, :, -n1:, :n2 , :n3], self.weights2)
+        out_ft[:, :, :n1 , -n2:, :n3] = compl_mul3d(x_ft[:, :, :n1 , -n2:, :n3], self.weights3)
+        out_ft[:, :, -n1:, -n2:, :n3] = compl_mul3d(x_ft[:, :, -n1:, -n2:, :n3], self.weights4)
 
         out = torch.irfft(out_ft, 3, normalized=True, onesided=True, signal_sizes=(x.size(-3), x.size(-2), x.size(-1)))
         return out

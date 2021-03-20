@@ -22,5 +22,6 @@ def mkdirs(command, args):
         raise ValueError(f'Unknown command: {command}')
 
 
-def dump_config(command, config, args):
-    copy(config, os.path.join(args['experiments'], args['exp_name'], f'config_{command}.json'))
+def dump_config(command, args):
+    with open(os.path.join(args['experiments'], args['exp_name'], f'config_{command}.json'), 'w') as f:
+        json.dump(args, f, indent=4)
