@@ -120,11 +120,14 @@ class NeuralFourierBlock3d(nn.Module):
 
 
 class FourierNet2d(nn.Module):
-    def __init__(self, n_layers, n_modes, width, t_in, t_out):
+    def __init__(self, n_layers, n_modes, width, t_in, t_out, pad=True):
         super(FourierNet2d, self).__init__()
         self.n_modes = n_modes
         self.width = width
-        self.fc0 = nn.Linear(t_in + 2, self.width)
+        if pad:
+            self.fc0 = nn.Linear(t_in + 2, self.width)
+        else:
+            self.fc0 = nn.Linear(t_in, self.width)
 
         layers = [NeuralFourierBlock2d(width, n_modes) for i in range(n_layers - 1)]
         layers.append(NeuralFourierBlock2d(width, n_modes, activation=False))
@@ -148,11 +151,14 @@ class FourierNet2d(nn.Module):
 
 
 class FourierNet3d(nn.Module):
-    def __init__(self, n_layers, n_modes, width, t_in, t_out):
+    def __init__(self, n_layers, n_modes, width, t_in, t_out, pad=True):
         super(FourierNet3d, self).__init__()
         self.n_modes = n_modes
         self.width = width
-        self.fc0 = nn.Linear(t_in + 3, self.width)
+        if pad:
+            self.fc0 = nn.Linear(t_in + 3, self.width)
+        else:
+            self.fc0 = nn.Linear(t_in, self.width)
 
         layers = [NeuralFourierBlock3d(width, n_modes) for i in range(n_layers - 1)]
         layers.append(NeuralFourierBlock3d(width, n_modes, activation=False))

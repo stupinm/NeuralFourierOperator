@@ -34,7 +34,8 @@ class Trainer:
         predictive_mode = self.predictive_mode
         if predictive_mode == 'one_step':
             basic_step = self.one_step_prediction
-            self.prepare_grids()
+            if self.pad_coordinates == 'true':
+                self.prepare_grids()
         elif predictive_mode == 'multiple_step':
             basic_step = self.multiple_step_prediction
         else:
@@ -69,10 +70,13 @@ class Trainer:
             else:
                 predict = torch.cat((predict, predict_t), -1)
 
-            xx = torch.cat((xx[..., step:-2], predict_t,
-                            self.gridx.repeat([self.batch_size, 1, 1, 1]),
-                            self.gridy.repeat([self.batch_size, 1, 1, 1])),
-                           dim=-1)
+            if self.pad_coordinates == 'true':
+                xx = torch.cat((xx[..., step:-2], predict_t,
+                                self.gridx.repeat([self.batch_size, 1, 1, 1]),
+                                self.gridy.repeat([self.batch_size, 1, 1, 1])),
+                               dim=-1)
+            else:
+                xx = torch.cat((xx[..., step:-2], predict_t), dim=-1)
 
         return loss, predict
 

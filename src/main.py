@@ -29,6 +29,7 @@ def get_default_args():
         "num_samples": 1200,
         "val_ratio": 0.1,
         "test_ratio": 0.2,
+        "pad_coordinates": "true",
         "seed": 42,
         "device": "cuda",
         "experiments": "../experiments",
@@ -54,7 +55,9 @@ def main():
         net_class = FourierNet3d
         n_modes = (args['n_modes_1'], args['n_modes_2'], args['n_modes_3'])
 
-    net = net_class(args['n_layers'], n_modes, args['width'], args['t_in'], args['t_out']).to(args['device'])
+
+    net = net_class(args['n_layers'], n_modes, args['width'], args['t_in'], args['t_out'],
+                    args['pad_coordinates'] == "true").to(args['device'])
     optimizer = torch.optim.Adam(net.parameters(), lr=args['learning_rate'], weight_decay=args['weight_decay'])
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args['scheduler_step'], gamma=args['scheduler_gamma'])
 

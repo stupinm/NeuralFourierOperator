@@ -34,6 +34,7 @@ class PadCoordinates(object):
 
         return input, label
 
+
 class PadCoordinates3d(object):
     def __init__(self, S, t_out):
         self.S = S
@@ -104,27 +105,25 @@ class Data(object):
         return l
 
     def get_transforms(self):
-        if self.net_arch == "2d":
-            pad_class = PadCoordinates
-            pad_args = (self.S,)
-        elif self.net_arch == "3d":
-            pad_class = PadCoordinates3d
-            pad_args = (self.S, self.t_out)
-        transforms_train = transforms.Compose([
+        basic_transforms = [
             Downsample(self.s, self.t),
-            ToTensor(),
-            pad_class(*pad_args)
-        ])
-        transforms_val = transforms.Compose([
-            Downsample(self.s, self.t),
-            ToTensor(),
-            pad_class(*pad_args)
-        ])
-        transforms_test = transforms.Compose([
-            Downsample(self.s, self.t),
-            ToTensor(),
-            pad_class(*pad_args)
-        ])
+            ToTensor()
+        ]
+
+        if self.pad_coordinates == 'true':
+            if self.net_arch == "2d":
+                pad_class = PadCoordinates
+                pad_args = (self.S,)
+            elif self.net_arch == "3d":
+                pad_class = PadCoordinates3d
+                pad_args = (self.S, self.t_out)
+
+            basic_transforms.append(pad_class(*pad_args))
+
+        transforms_train = transforms.Compose(basic_transforms)
+        transforms_val = transforms.Compose(basic_transforms)
+        transforms_test = transforms.Compose(basic_transforms)
+
         return transforms_train, transforms_val, transforms_test
 
     def get_ids(self):
