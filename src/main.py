@@ -1,6 +1,5 @@
 import torch
-from neural_fourier import FourierNet
-from neural_fourier_3d import FourierNet3d
+from neural_fourier import FourierNet2d, FourierNet3d
 from train import Trainer
 from data import Data
 from utils import parse_args, dump_config, mkdirs
@@ -49,7 +48,7 @@ def main():
     dump_config(command, args)
 
     if args['net_arch'] == '2d':
-        net_class = FourierNet
+        net_class = FourierNet2d
         n_modes = (args['n_modes_1'], args['n_modes_2'])
     elif args['net_arch'] == '3d':
         net_class = FourierNet3d
