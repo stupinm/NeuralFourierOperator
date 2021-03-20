@@ -1,10 +1,10 @@
 {
-    "command": "train",
+    "command": "train&test",
     "exp_name": "fourier2d_modes64_grid",
     "net_arch": "2d",
     "dataset": "navier_stokes",
     "batch_size": 20,
-    "n_epochs": 100,
+    "n_epochs": 1,
     "weight_decay": 0.0001,
     "learning_rate": 0.0025,
     "scheduler_step": 35,

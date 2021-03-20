@@ -67,9 +67,13 @@ def main():
         with redirect_stdout(f):
             if command == 'train':
                 trainer.train()
+            elif command == 'train&test':
+                loss = trainer.test(test_loader).item()
+                print(f'Test loss: {loss / len(test_loader)}')
             elif command == 'test':
                 trainer.load_model()
-                trainer.test(test_loader)
+                loss = trainer.test(test_loader).item()
+                print(f'Test loss: {loss / len(test_loader)}')
             elif command == 'predict':
                 trainer.load_model()
                 trainer.predict(test_loader)
