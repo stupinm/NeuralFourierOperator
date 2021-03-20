@@ -9,9 +9,38 @@ from contextlib import redirect_stdout
 import os
 
 
+def get_default_args():
+    default_args = {
+        "batch_size": 50,
+        "n_epochs": 500,
+        "weight_decay": 0.0001,
+        "learning_rate": 0.0025,
+        "scheduler_step": 100,
+        "scheduler_gamma": 0.5,
+        "n_layers": 4,
+        "n_modes": 12,
+        "width": 20,
+        "predictive_mode": "multiple_step",
+        "input_output_ratio": 0.2,
+        "S": 64,
+        "s": 1,
+        "t": 1,
+        "num_samples": 1200,
+        "val_ratio": 0.1,
+        "test_ratio": 0.2,
+        "seed": 42,
+        "device": "cuda",
+        "experiments": "../experiments",
+        "datasets": "../datasets"
+    }
+
+    return default_args
+
+
 def main():
     config = sys.argv[1]
     args = parse_args(config)
+    args = {**get_default_args(), **args}
     command = args['command']
 
     mkdirs(command, args)
