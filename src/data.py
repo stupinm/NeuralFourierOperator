@@ -21,6 +21,27 @@ class Downsample(object):
         return input[::s, ::s, ::t], label[::s, ::s, ::t]
 
 
+class NumOutTimesteps(object):
+    def __init__(self, t_out):
+        self.t_out = t_out
+
+    def __call__(self, sample):
+        input, label = sample
+        t_out = self.t_out
+        return input, label[:, :, :t_out]
+
+
+class OutTimestepsRepeat(object):
+    def __init__(self, t_out):
+        self.t_out = t_out
+
+    def __call__(self, sample):
+        T = self.t_out
+        input, label = sample
+        input = input.reshape(input.shape[0], input.shape[1], 1, input.shape[2]).repeat([1,1,T,1])
+        return input, label
+
+
 class PadCoordinates(object):
     def __init__(self, S):
         self.S = S
@@ -44,6 +65,7 @@ class PadCoordinates3d(object):
         S = self.S
         T = self.t_out
         input, label = sample
+
         gridx = torch.tensor(np.linspace(0, 1, S),       dtype=torch.float32).reshape(S, 1, 1, 1).repeat([1, S, T, 1])
         gridy = torch.tensor(np.linspace(0, 1, S),       dtype=torch.float32).reshape(1, S, 1, 1).repeat([S, 1, T, 1])
         gridt = torch.tensor(np.linspace(0, 1, T+1)[1:], dtype=torch.float32).reshape(1, 1, T, 1).repeat([S, S, 1, 1])
@@ -106,19 +128,19 @@ class Data(object):
 
     def get_transforms(self):
         basic_transforms = [
+            NumOutTimesteps(self.t_out),
             Downsample(self.s, self.t),
             ToTensor()
         ]
 
+        if self.net_arch == "3d":
+            basic_transforms.append(OutTimestepsRepeat(self.t_out))
+
         if self.pad_coordinates == 'true':
             if self.net_arch == "2d":
-                pad_class = PadCoordinates
-                pad_args = (self.S,)
+                basic_transforms.append(PadCoordinates(self.S))
             elif self.net_arch == "3d":
-                pad_class = PadCoordinates3d
-                pad_args = (self.S, self.t_out)
-
-            basic_transforms.append(pad_class(*pad_args))
+                basic_transforms.append(PadCoordinates3d(self.S, self.t_out))
 
         transforms_train = transforms.Compose(basic_transforms)
         transforms_val = transforms.Compose(basic_transforms)
