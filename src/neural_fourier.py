@@ -75,6 +75,28 @@ class SpectralConv3d(nn.Module):
         return out
 
 
+class SpatialBlock2d(nn.Module):
+    def __init__(self, n_channels, activation=True, **kwargs):
+        super(SpatialBlock2d, self).__init__()
+        self.conv = nn.Conv2d(n_channels, n_channels, **kwargs)
+        self.shortcut = nn.Conv1d(n_channels, n_channels, 1)
+        self.bn = torch.nn.BatchNorm2d(n_channels)
+        self.activation = activation
+        self.n_channels = n_channels
+
+    def forward(self, x):
+        batchsize = x.shape[0]
+        size_x, size_y = x.shape[2], x.shape[3]
+
+        out = self.conv(x)
+        out += self.shortcut(x.view(batchsize, self.n_channels, -1)).view(batchsize, self.n_channels, size_x, size_y)
+        out = self.bn(out)
+        if self.activation:
+            out = F.relu(out)
+
+        return out
+
+
 class NeuralFourierBlock2d(nn.Module):
     def __init__(self, width, n_modes, activation=True):
         super(NeuralFourierBlock2d, self).__init__()
@@ -119,21 +141,52 @@ class NeuralFourierBlock3d(nn.Module):
         return out
 
 
+class SpatialNet2d(nn.Module):
+    def __init__(self, n_layers, n_modes, width, t_in, t_out, pad=True, **kwargs):
+        super(SpatialNet2d, self).__init__()
+        self.n_modes = n_modes
+        self.width = width
+        if pad:
+            self.fc0 = nn.Linear(t_in + 2, width)
+        else:
+            self.fc0 = nn.Linear(t_in, width)
+
+        layers = [SpatialBlock2d(width, **kwargs) for i in range(n_layers - 1)]
+        layers.append(SpatialBlock2d(width, activation=False, **kwargs))
+        self.backbone = nn.Sequential(*layers)
+
+        self.fc1 = nn.Linear(width, 128)
+        self.fc2 = nn.Linear(128, t_out)
+
+    def forward(self, x):
+        out = self.fc0(x)
+
+        out = out.permute(0, 3, 1, 2)
+        out = self.backbone(out)
+        out = out.permute(0, 2, 3, 1)
+
+        out = self.fc1(out)
+        out = F.relu(out)
+        out = self.fc2(out)
+
+        return out
+
+
 class FourierNet2d(nn.Module):
-    def __init__(self, n_layers, n_modes, width, t_in, t_out, pad=True):
+    def __init__(self, n_layers, n_modes, width, t_in, t_out, pad=True, **kwargs):
         super(FourierNet2d, self).__init__()
         self.n_modes = n_modes
         self.width = width
         if pad:
-            self.fc0 = nn.Linear(t_in + 2, self.width)
+            self.fc0 = nn.Linear(t_in + 2, width)
         else:
-            self.fc0 = nn.Linear(t_in, self.width)
+            self.fc0 = nn.Linear(t_in, width)
 
         layers = [NeuralFourierBlock2d(width, n_modes) for i in range(n_layers - 1)]
         layers.append(NeuralFourierBlock2d(width, n_modes, activation=False))
         self.backbone = nn.Sequential(*layers)
 
-        self.fc1 = nn.Linear(self.width, 128)
+        self.fc1 = nn.Linear(width, 128)
         self.fc2 = nn.Linear(128, t_out)
 
     def forward(self, x):
@@ -151,20 +204,20 @@ class FourierNet2d(nn.Module):
 
 
 class FourierNet3d(nn.Module):
-    def __init__(self, n_layers, n_modes, width, t_in, t_out=None, pad=True):
+    def __init__(self, n_layers, n_modes, width, t_in, t_out=None, pad=True, **kwargs):
         super(FourierNet3d, self).__init__()
         self.n_modes = n_modes
         self.width = width
         if pad:
-            self.fc0 = nn.Linear(t_in + 3, self.width)
+            self.fc0 = nn.Linear(t_in + 3, width)
         else:
-            self.fc0 = nn.Linear(t_in, self.width)
+            self.fc0 = nn.Linear(t_in, width)
 
         layers = [NeuralFourierBlock3d(width, n_modes) for i in range(n_layers - 1)]
         layers.append(NeuralFourierBlock3d(width, n_modes, activation=False))
         self.backbone = nn.Sequential(*layers)
-
-        self.fc1 = nn.Linear(self.width, 128)
+        
+        self.fc1 = nn.Linear(width, 128)
         self.fc2 = nn.Linear(128, 1)
 
     def forward(self, x):

@@ -1,5 +1,5 @@
 import torch
-from neural_fourier import FourierNet2d, FourierNet3d
+from neural_fourier import FourierNet2d, FourierNet3d, SpatialNet2d
 from train import Trainer
 from data import Data
 from utils import parse_args, dump_config, mkdirs
@@ -31,6 +31,8 @@ def get_default_args():
         "test_ratio": 0.2,
         "shuffle": "true",
         "pad_coordinates": "true",
+        "kernel_size": 3,
+        "padding": 1,
         "seed": 42,
         "device": "cuda",
         "experiments": "../experiments",
@@ -52,13 +54,20 @@ def main():
     if args['net_arch'] == '2d':
         net_class = FourierNet2d
         n_modes = (args['n_modes_1'], args['n_modes_2'])
+        kwargs = {}
     elif args['net_arch'] == '3d':
         net_class = FourierNet3d
         n_modes = (args['n_modes_1'], args['n_modes_2'], args['n_modes_3'])
-
+        kwargs = {}
+    elif args['net_arch'] == '2d_spatial':
+        net_class = SpatialNet2d
+        n_modes = -1
+        kwargs = {'kernel_size' : args['kernel_size'], 'padding': args['padding']}
+    else:
+        raise ValueError(f'Unknown net_arch: {args["net_arch"]}')
 
     net = net_class(args['n_layers'], n_modes, args['width'], args['t_in'], args['t_out'],
-                    args['pad_coordinates'] == "true").to(args['device'])
+                    args['pad_coordinates'] == "true", **kwargs).to(args['device'])
     optimizer = torch.optim.Adam(net.parameters(), lr=args['learning_rate'], weight_decay=args['weight_decay'])
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args['scheduler_step'], gamma=args['scheduler_gamma'])
 

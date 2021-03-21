@@ -1,6 +1,6 @@
 {
     "command": "train&test",
-    "exp_name": "fourier2d_modes12_grid",
+    "exp_name": "fourier2d_modes12_nogrid",
     "net_arch": "2d",
     "dataset": "navier_stokes",
     "batch_size": 20,
@@ -15,5 +15,6 @@
     "predictive_mode": "multiple_step",
     "t_in": 10,
     "t_out": 10,
-    "input_output_ratio": 0.5
+    "input_output_ratio": 0.5,
+    "pad_coordinates": "false"
 }

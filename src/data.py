@@ -137,7 +137,7 @@ class Data(object):
             basic_transforms.append(OutTimestepsRepeat(self.t_out))
 
         if self.pad_coordinates == 'true':
-            if self.net_arch == "2d":
+            if self.net_arch == "2d" or self.net_arch == "2d_spatial":
                 basic_transforms.append(PadCoordinates(self.S))
             elif self.net_arch == "3d":
                 basic_transforms.append(PadCoordinates3d(self.S, self.t_out))

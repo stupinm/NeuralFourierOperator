@@ -3,6 +3,7 @@ import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 import os
 from timeit import default_timer
+import sys
 
 
 def lp_loss_relative(true, pred, p=2, reduction='mean'):
@@ -128,6 +129,8 @@ class Trainer:
             self.writer.add_scalar('train_loss', loss_train.item() / n_train, epoch)
             self.writer.add_scalar('val_loss', loss_val.item() / n_test, epoch)
             print(f'Epoch: {epoch} time: {epoch_time}, train_loss: {loss_train.item() / n_train}, val_loss: {loss_val.item() / n_test}')
+            sys.stdout.flush()
+            sys.stderr.flush()
 
         self.save_model(epoch)
 
