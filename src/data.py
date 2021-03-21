@@ -42,7 +42,7 @@ class OutTimestepsRepeat(object):
         return input, label
 
 
-class PadCoordinates(object):
+class PadCoordinates2d(object):
     def __init__(self, S):
         self.S = S
 
@@ -93,7 +93,7 @@ class PDEDataset(torch_data.Dataset):
         if self.transform is not None:
             input, label = self.transform((input, label))
 
-        return input, label
+        return input.float(), label.float()
 
 
 class Data(object):
@@ -128,8 +128,8 @@ class Data(object):
 
     def get_transforms(self):
         basic_transforms = [
-            NumOutTimesteps(self.t_out),
             Downsample(self.s, self.t),
+            NumOutTimesteps(self.t_out),
             ToTensor()
         ]
 
@@ -138,7 +138,7 @@ class Data(object):
 
         if self.pad_coordinates == 'true':
             if self.net_arch == "2d" or self.net_arch == "2d_spatial":
-                basic_transforms.append(PadCoordinates(self.S))
+                basic_transforms.append(PadCoordinates2d(self.S))
             elif self.net_arch == "3d":
                 basic_transforms.append(PadCoordinates3d(self.S, self.t_out))
 
@@ -168,10 +168,8 @@ class Data(object):
     def get_dataloaders(self):
         l = self.inspect_folder()
         train_ids, val_ids, test_ids = self.get_ids()
-
         train_dataloader, val_dataloader, test_dataloader = None, None, None
         transforms_train, transforms_val, transforms_test = self.get_transforms()
-
         input_output_ratio = self.t_in / (self.t_in + self.t_out)
 
         if len(train_ids) > 0:
