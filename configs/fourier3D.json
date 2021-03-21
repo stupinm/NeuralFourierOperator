@@ -22,5 +22,5 @@
     "shuffle": "false",
     "num_samples": 1200,
     "val_ratio": 0.090909091,
-    "test_ratio": 0.08333334,
+    "test_ratio": 0.08333334
 }
