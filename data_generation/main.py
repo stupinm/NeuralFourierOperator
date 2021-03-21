@@ -1,16 +1,13 @@
 import numpy as np
 from tqdm import tqdm
 import os
-from navier_stocks import navier_stokes_2d
-from heat_equatation import heat_2d
+from navier_stokes import navier_stokes_2d
 import argparse
 
 
 def generate_dataset(dataset, num_samples, path, params):
     if dataset == 'navier_stocks':
         generate_sample = navier_stokes_2d
-    elif dataset == 'heat':
-        generate_sample = heat_2d
     else:
         raise ValueError(f'Unknown dataset: {dataset}')
 
@@ -25,7 +22,7 @@ def generate_dataset(dataset, num_samples, path, params):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', choices=['navier_stocks', 'heat'], default='navier_stocks')
+    parser.add_argument('--dataset', choices=['navier_stocks'], default='navier_stocks')
     parser.add_argument('--num_samples', type=int, default=1200)
     parser.add_argument('--path', type=str, default='../datasets', help='path to folder with datasets')
     parser.add_argument('--s', type=int, default=256, help='spatial resolution')
