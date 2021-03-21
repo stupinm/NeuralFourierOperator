@@ -1,6 +1,6 @@
 {
     "command": "train&test",
-    "exp_name": "fourier2d_modes64_grid",
+    "exp_name": "fourier2d_modes32_grid",
     "net_arch": "2d",
     "dataset": "navier_stokes",
     "batch_size": 20,
@@ -9,7 +9,7 @@
     "learning_rate": 0.0025,
     "scheduler_step": 35,
     "scheduler_gamma": 0.28,
-    "n_modes_1": 64,
+    "n_modes_1": 32,
     "n_modes_2": 32,
     "width": 20,
     "predictive_mode": "multiple_step",
