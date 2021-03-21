@@ -42,6 +42,7 @@ def get_default_args():
 
 
 def main():
+    torch.manual_seed(0)
     config = sys.argv[1]
     args = parse_args(config)
     args = {**get_default_args(), **args}
@@ -52,11 +53,11 @@ def main():
 
     if args['net_arch'] == '2d':
         net_class = FourierNet2d
-        n_modes = (args['n_modes_y'], args['n_modes_x'])
+        n_modes = (args['n_modes_x'], args['n_modes_y'])
         kwargs = {}
     elif args['net_arch'] == '3d':
         net_class = FourierNet3d
-        n_modes = (args['n_modes_y'], args['n_modes_x'], args['n_modes_t'])
+        n_modes = (args['n_modes_x'], args['n_modes_y'], args['n_modes_t'])
         kwargs = {}
     elif args['net_arch'] == '2d_spatial':
         net_class = SpatialNet2d
