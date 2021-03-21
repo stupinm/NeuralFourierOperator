@@ -111,12 +111,14 @@ class Data(object):
         ]
 
         if self.pad_coordinates == 'true':
-            if self.net_arch == "2d":
+            if self.net_arch == "2d" or self.net_arch == "2d_spatial":
                 pad_class = PadCoordinates
                 pad_args = (self.S,)
             elif self.net_arch == "3d":
                 pad_class = PadCoordinates3d
                 pad_args = (self.S, self.t_out)
+            else:
+                raise ValueError(f'Unknown net_arch: {net_arch}')
 
             basic_transforms.append(pad_class(*pad_args))
 
