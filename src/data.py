@@ -172,16 +172,17 @@ class Data(object):
         train_dataloader, val_dataloader, test_dataloader = None, None, None
         transforms_train, transforms_val, transforms_test = self.get_transforms()
 
+        input_output_ratio = self.t_in / (self.t_in + self.t_out)
         if len(train_ids) > 0:
-            train_dataset = PDEDataset(self.path, train_ids, l, self.input_output_ratio, transforms_train)
+            train_dataset = PDEDataset(self.path, train_ids, l, input_output_ratio, transforms_train)
             train_dataloader = torch_data.DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
 
         if len(val_ids) > 0:
-            val_dataset = PDEDataset(self.path, val_ids, l, self.input_output_ratio, transforms_val)
+            val_dataset = PDEDataset(self.path, val_ids, l, input_output_ratio, transforms_val)
             val_dataloader = torch_data.DataLoader(val_dataset, batch_size=self.batch_size, shuffle=False)
 
         if len(test_ids) > 0:
-            test_dataset = PDEDataset(self.path, test_ids, l, self.input_output_ratio, transforms_test)
+            test_dataset = PDEDataset(self.path, test_ids, l, input_output_ratio, transforms_test)
             test_dataloader = torch_data.DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 
         return train_dataloader, val_dataloader, test_dataloader

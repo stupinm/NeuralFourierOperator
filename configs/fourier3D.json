@@ -21,7 +21,6 @@
     "S": 64,
     "t_in": 10,
     "t_out": 40,
-    "input_output_ratio": 0.2,
     "shuffle": "false",
     "num_samples": 1200,
     "val_ratio": 0.090909091,
