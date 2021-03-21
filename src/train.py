@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 import os
+from timeit import default_timer
 
 
 def lp_loss_relative(true, pred, p=2, reduction='mean'):
@@ -113,16 +114,20 @@ class Trainer:
         self.net.train()
         n_train, n_test = len(self.train_loader), len(self.val_loader)
         for epoch in range(self.n_epochs):
+            t1 = default_timer()
             loss_train = 0
             for inputs, labels in self.train_loader:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 loss_train += self.train_step(inputs, labels)
 
             loss_val = self.test(self.val_loader)
+            t2 = default_timer()
             self.scheduler.step()
+            epoch_time = t2-t1
+            self.writer.add_scalar('time', epoch_time, epoch)
             self.writer.add_scalar('train_loss', loss_train.item() / n_train, epoch)
             self.writer.add_scalar('val_loss', loss_val.item() / n_test, epoch)
-            print(f'Epoch: {epoch} train_loss: {loss_train.item() / n_train}, val_loss: {loss_val.item() / n_test}')
+            print(f'Epoch: {epoch} time: {epoch_time}, train_loss: {loss_train.item() / n_train}, val_loss: {loss_val.item() / n_test}')
 
         self.save_model(epoch)
 
@@ -149,4 +154,3 @@ class Trainer:
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             _, predictions = self.basic_step(inputs, labels)
             np.save(os.path.join(dir_, f'prediction_{str(idx).rjust(l, "0")}.npy'), predictions.cpu().numpy())
-
