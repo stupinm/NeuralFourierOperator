@@ -10,16 +10,18 @@ import os
 
 def get_default_args():
     default_args = {
-        "batch_size": 50,
+        "dataset": "ns_V1e-3_N1200_T50_1_s4",
+        "net_arch": "3d",
+        "batch_size": 10,
         "n_epochs": 500,
         "weight_decay": 0.0001,
         "learning_rate": 0.0025,
         "scheduler_step": 100,
         "scheduler_gamma": 0.5,
         "n_layers": 4,
-        "n_modes_1": 12,
-        "n_modes_2": 12,
-        "n_modes_3": 12,
+        "n_modes_1": 4,
+        "n_modes_2": 4,
+        "n_modes_3": 4,
         "width": 20,
         "predictive_mode": "multiple_step",
         "input_output_ratio": 0.2,
