@@ -1,10 +1,8 @@
 {
     "command": "train&test",
-    "experiments" : "../experiments",
     "exp_name": "exp1",
     "datasets": "/content/data",
     "dataset": "ns_V1e-3_N1200_T50",
-    "predictions_path": "pred",
     "net_arch": "3d",
     "batch_size": 10,
     "n_epochs": 500,
@@ -13,9 +11,9 @@
     "scheduler_step": 100,
     "scheduler_gamma": 0.5,
     "n_layers": 4,
-    "n_modes_1": 4,
-    "n_modes_2": 4,
-    "n_modes_3": 4,
+    "n_modes_x": 4,
+    "n_modes_y": 4,
+    "n_modes_t": 4,
     "width": 20,
     "predictive_mode": "multiple_step",
     "S": 64,
@@ -25,6 +23,4 @@
     "num_samples": 1200,
     "val_ratio": 0.090909091,
     "test_ratio": 0.08333334,
-    "seed": 42,
-    "device": "cuda"
 }

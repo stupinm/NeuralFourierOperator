@@ -19,9 +19,9 @@ def get_default_args():
         "scheduler_step": 100,
         "scheduler_gamma": 0.5,
         "n_layers": 4,
-        "n_modes_1": 4,
-        "n_modes_2": 4,
-        "n_modes_3": 4,
+        "n_modes_x": 4,
+        "n_modes_y": 4,
+        "n_modes_t": 4,
         "width": 20,
         "predictive_mode": "multiple_step",
         "S": 64,
@@ -52,11 +52,11 @@ def main():
 
     if args['net_arch'] == '2d':
         net_class = FourierNet2d
-        n_modes = (args['n_modes_1'], args['n_modes_2'])
+        n_modes = (args['n_modes_y'], args['n_modes_x'])
         kwargs = {}
     elif args['net_arch'] == '3d':
         net_class = FourierNet3d
-        n_modes = (args['n_modes_1'], args['n_modes_2'], args['n_modes_3'])
+        n_modes = (args['n_modes_y'], args['n_modes_x'], args['n_modes_t'])
         kwargs = {}
     elif args['net_arch'] == '2d_spatial':
         net_class = SpatialNet2d

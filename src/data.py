@@ -75,7 +75,7 @@ class PadCoordinates3d(object):
 
 
 class PDEDataset(torch_data.Dataset):
-    def __init__(self, path, ids, l, ratio=0.2, transform=None):
+    def __init__(self, path, ids, l, ratio, transform=None):
         super(PDEDataset, self).__init__()
         self.path = path
         self.ids = ids

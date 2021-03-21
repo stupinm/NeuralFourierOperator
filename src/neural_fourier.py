@@ -13,7 +13,6 @@ def compl_mul2d(a, b):
 
 
 def compl_mul3d(a, b):
-    # (batch, in_channel, x,y,t ), (in_channel, out_channel, x,y,t) -> (batch, out_channel, x,y,t)
     op = partial(torch.einsum, "bixyz,ioxyz->boxyz")
     return torch.stack([
         op(a[..., 0], b[..., 0]) - op(a[..., 1], b[..., 1]),
