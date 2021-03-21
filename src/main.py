@@ -29,6 +29,7 @@ def get_default_args():
         "num_samples": 1200,
         "val_ratio": 0.1,
         "test_ratio": 0.2,
+        "shuffle": "true",
         "pad_coordinates": "true",
         "seed": 42,
         "device": "cuda",
