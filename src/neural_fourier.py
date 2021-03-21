@@ -204,7 +204,7 @@ class FourierNet2d(nn.Module):
 
 
 class FourierNet3d(nn.Module):
-    def __init__(self, n_layers, n_modes, width, t_in, t_out, pad=True, **kwargs):
+    def __init__(self, n_layers, n_modes, width, t_in, t_out=None, pad=True, **kwargs):
         super(FourierNet3d, self).__init__()
         self.n_modes = n_modes
         self.width = width
@@ -216,9 +216,9 @@ class FourierNet3d(nn.Module):
         layers = [NeuralFourierBlock3d(width, n_modes) for i in range(n_layers - 1)]
         layers.append(NeuralFourierBlock3d(width, n_modes, activation=False))
         self.backbone = nn.Sequential(*layers)
-
+        
         self.fc1 = nn.Linear(width, 128)
-        self.fc2 = nn.Linear(128, t_out)
+        self.fc2 = nn.Linear(128, 1)
 
     def forward(self, x):
         out = self.fc0(x)
