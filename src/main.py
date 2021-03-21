@@ -71,6 +71,7 @@ def main():
             if command == 'train':
                 trainer.train()
             elif command == 'train&test':
+                trainer.train()
                 loss = trainer.test(test_loader).item()
                 print(f'Test loss: {loss / len(test_loader)}')
             elif command == 'test':
