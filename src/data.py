@@ -161,7 +161,7 @@ class Data(object):
         train_len = self.num_samples - test_len - val_len
         train_ids = permutation[:train_len]
         val_ids = permutation[train_len:train_len+val_len]
-        test_ids = permutation[-test_len:]
+        test_ids = permutation[train_len+val_len:train_len+val_len+test_len]
 
         return train_ids, val_ids, test_ids
 
@@ -169,7 +169,7 @@ class Data(object):
         l = self.inspect_folder()
         train_ids, val_ids, test_ids = self.get_ids()
 
-        # train_dataloader, val_dataloader, test_dataloader = None
+        train_dataloader, val_dataloader, test_dataloader = None, None, None
         transforms_train, transforms_val, transforms_test = self.get_transforms()
 
         if len(train_ids) > 0:
