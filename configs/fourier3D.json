@@ -1,7 +1,6 @@
 {
     "command": "train&test",
     "exp_name": "exp1",
-    "datasets": "/content/data",
     "dataset": "ns_V1e-3_N1200_T50",
     "net_arch": "3d",
     "batch_size": 10,
