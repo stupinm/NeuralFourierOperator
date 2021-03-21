@@ -161,7 +161,7 @@ class Data(object):
         train_len = self.num_samples - test_len - val_len
         train_ids = permutation[:train_len]
         val_ids = permutation[train_len:train_len+val_len]
-        test_ids = permutation[-test_len:]
+        test_ids = permutation[train_len+val_len:train_len+val_len+test_len]
 
         return train_ids, val_ids, test_ids
 
