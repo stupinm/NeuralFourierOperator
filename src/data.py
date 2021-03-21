@@ -173,6 +173,7 @@ class Data(object):
         transforms_train, transforms_val, transforms_test = self.get_transforms()
 
         input_output_ratio = self.t_in / (self.t_in + self.t_out)
+
         if len(train_ids) > 0:
             train_dataset = PDEDataset(self.path, train_ids, l, input_output_ratio, transforms_train)
             train_dataloader = torch_data.DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
