@@ -83,6 +83,11 @@ def main():
                 trainer.train()
                 loss = trainer.test(test_loader).item()
                 print(f'Test loss: {loss / len(test_loader)}')
+            elif command == 'train&test&predict':
+                trainer.train()
+                loss = trainer.test(test_loader).item()
+                print(f'Test loss: {loss / len(test_loader)}')
+                trainer.predict(test_loader)
             elif command == 'test':
                 trainer.load_model()
                 loss = trainer.test(test_loader).item()
