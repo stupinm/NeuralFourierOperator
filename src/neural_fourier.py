@@ -151,7 +151,7 @@ class FourierNet2d(nn.Module):
 
 
 class FourierNet3d(nn.Module):
-    def __init__(self, n_layers, n_modes, width, t_in, t_out, pad=True):
+    def __init__(self, n_layers, n_modes, width, t_in, t_out=None, pad=True):
         super(FourierNet3d, self).__init__()
         self.n_modes = n_modes
         self.width = width
@@ -165,7 +165,7 @@ class FourierNet3d(nn.Module):
         self.backbone = nn.Sequential(*layers)
 
         self.fc1 = nn.Linear(self.width, 128)
-        self.fc2 = nn.Linear(128, t_out)
+        self.fc2 = nn.Linear(128, 1)
 
     def forward(self, x):
         out = self.fc0(x)
