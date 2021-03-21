@@ -169,7 +169,7 @@ class Data(object):
         l = self.inspect_folder()
         train_ids, val_ids, test_ids = self.get_ids()
 
-        # train_dataloader, val_dataloader, test_dataloader = None
+        train_dataloader, val_dataloader, test_dataloader = None, None, None
         transforms_train, transforms_val, transforms_test = self.get_transforms()
 
         if len(train_ids) > 0:
