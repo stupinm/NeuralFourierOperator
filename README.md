@@ -36,7 +36,7 @@ tensorboard --logdir experiments/experiment_name
 
 
 If you would to modify models' hyperparameters, number of epochs, batch size, and other, 
-consider looking to `glf/options/train` folder for configuration examples.
+consider looking to `configs` folder for configuration examples.
 An example of the config file is as follows:
 
 ```json
@@ -49,14 +49,14 @@ predictions_path: predict               # "predict" command will put predictions
 net_arch: 3d / 2d / 2d_spatial          # 3d architecture utilize spectral convolutions also with time axis, 2d_spatial use default 2d convolutions
 pad_coordinates: true                   # whether concatenate spatial coordinates on time axis or not
 n_layers: 4                             # number of fourier layers
-n_modes_1: 4                            # number of modes to use on y-axis
-n_modes_2: 4                            # number of modes to use on y-axis
-n_modes_3: 4                            # number of modes to use on y-axis
+n_modes_1: 4                            # number of modes to use on -3-axis
+n_modes_2: 4                            # number of modes to use on -2-axis
+n_modes_3: 4                            # number of modes to use on -1-axis
 width: 20                               # w parameter of fourier layer / number of channels
 predictive_mode: multiple_step / one_step             # multiple_step predict t_out steps by one forward pass, one_step first predict next timestep then concatenate previous input steps with prediction repeating procedure t_out times; for more details see src/train.py
-s: 1                                    # spatial resolution, can be usefull for test/prediction commands
-t: 1                                    # time resolution, can be usefull for test/prediction commands
-S: 64                                   # spatial size of input and output after downsampling
+s: 1                                    # spatial resolution sampling frequency, can be usefull for test/prediction commands
+t: 1                                    # time resolution sampling frequency, can be usefull for test/prediction commands
+S: 64                                   # spatial size of input and output after downsampling with "s" frequency
 t_in: 10                                # number of input timesteps
 t_out: 40                               # number of output timesteps
 test_ratio: 0.2                         # n_test / n_samples
