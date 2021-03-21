@@ -12,7 +12,7 @@ def parse_args(file):
 
 def mkdirs(command, args):
     exp_folder = os.path.join(args['experiments'], args['exp_name'])
-    if command == 'train' or 'train&test':
+    if command == 'train' or command == 'train&test':
         os.mkdir(exp_folder)
         os.mkdir(os.path.join(exp_folder, 'tensorboard'))
     elif command == 'predict':
