@@ -150,7 +150,10 @@ class Data(object):
 
     def get_ids(self):
         np.random.seed(self.seed)
-        permutation = np.random.permutation(self.num_samples)
+        if self.shuffle == 'true':
+            permutation = np.random.permutation(self.num_samples)
+        elif self.shuffle == 'false':
+            permutation = np.arange(self.num_samples)
         test_len = int(self.num_samples * self.test_ratio)
         test_len = test_len - test_len % self.batch_size
         val_len = int((self.num_samples - test_len) * self.val_ratio)
@@ -166,13 +169,19 @@ class Data(object):
         l = self.inspect_folder()
         train_ids, val_ids, test_ids = self.get_ids()
 
+        train_dataloader, val_dataloader, test_dataloader = None, None, None
         transforms_train, transforms_val, transforms_test = self.get_transforms()
-        train_dataset = PDEDataset(self.path, train_ids, l, self.input_output_ratio, transforms_train)
-        val_dataset = PDEDataset(self.path, val_ids, l, self.input_output_ratio, transforms_val)
-        test_dataset = PDEDataset(self.path, test_ids, l, self.input_output_ratio, transforms_test)
 
-        train_dataloader = torch_data.DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
-        val_dataloader = torch_data.DataLoader(val_dataset, batch_size=self.batch_size, shuffle=False)
-        test_dataloader = torch_data.DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
+        if len(train_ids) > 0:
+            train_dataset = PDEDataset(self.path, train_ids, l, self.input_output_ratio, transforms_train)
+            train_dataloader = torch_data.DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
+
+        if len(val_ids) > 0:
+            val_dataset = PDEDataset(self.path, val_ids, l, self.input_output_ratio, transforms_val)
+            val_dataloader = torch_data.DataLoader(val_dataset, batch_size=self.batch_size, shuffle=False)
+
+        if len(test_ids) > 0:
+            test_dataset = PDEDataset(self.path, test_ids, l, self.input_output_ratio, transforms_test)
+            test_dataloader = torch_data.DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 
         return train_dataloader, val_dataloader, test_dataloader
