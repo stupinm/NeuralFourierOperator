@@ -45,14 +45,13 @@ class OutTimestepsRepeat(object):
 class PadCoordinates2d(object):
     def __init__(self, S):
         self.S = S
+        self.padding = torch.zeros(S, S, 2, dtype=torch.float32)
+        self.padding[:, :, 0] = torch.linspace(0, 1, S, dtype=torch.float32).reshape(S, 1)
+        self.padding[:, :, 1] = torch.linspace(0, 1, S, dtype=torch.float32).reshape(1, S)
 
     def __call__(self, sample):
-        S = self.S
         input, label = sample
-        gridx = torch.tensor(np.linspace(0, 1, S), dtype=torch.float32).reshape(S, 1, 1).repeat([1, S, 1])
-        gridy = torch.tensor(np.linspace(0, 1, S), dtype=torch.float32).reshape(1, S, 1).repeat([S, 1, 1])
-        input = torch.cat((gridx.repeat([1, 1, 1]), gridy.repeat([1, 1, 1]), input), dim=-1)
-
+        input = torch.cat((self.padding, input), dim=-1)
         return input, label
 
 
@@ -60,35 +59,32 @@ class PadCoordinates3d(object):
     def __init__(self, S, t_out):
         self.S = S
         self.t_out = t_out
+        self.padding = torch.zeros(S, S, t_out, 3, dtype=torch.float32)
+        self.padding[:, :, :, 0] = torch.linspace(0, 1, S,       dtype=torch.float32)    .reshape(S, 1, 1)
+        self.padding[:, :, :, 1] = torch.linspace(0, 1, S,       dtype=torch.float32)    .reshape(1, S, 1)
+        self.padding[:, :, :, 2] = torch.linspace(0, 1, t_out+1, dtype=torch.float32)[1:].reshape(1, 1, t_out)
 
     def __call__(self, sample):
-        S = self.S
-        T = self.t_out
         input, label = sample
-
-        gridx = torch.tensor(np.linspace(0, 1, S),       dtype=torch.float32).reshape(S, 1, 1, 1).repeat([1, S, T, 1])
-        gridy = torch.tensor(np.linspace(0, 1, S),       dtype=torch.float32).reshape(1, S, 1, 1).repeat([S, 1, T, 1])
-        gridt = torch.tensor(np.linspace(0, 1, T+1)[1:], dtype=torch.float32).reshape(1, 1, T, 1).repeat([S, S, 1, 1])
-        input = torch.cat((gridx.repeat([1, 1, 1, 1]), gridy.repeat([1, 1, 1, 1]), gridt.repeat([1, 1, 1, 1]), input), dim=-1)
-
+        input = torch.cat((self.padding, input), dim=-1)
         return input, label
 
 
 class PDEDataset(torch_data.Dataset):
-    def __init__(self, path, ids, l, ratio, transform=None):
+    def __init__(self, path, ids, l, input_time_len, transform=None):
         super(PDEDataset, self).__init__()
         self.path = path
         self.ids = ids
         self.transform = transform
         self.l = l
-        self.ratio = ratio
+        self.input_time_len = input_time_len
 
     def __len__(self):
         return len(self.ids)
 
     def __getitem__(self, idx):
         solution = np.load(os.path.join(self.path, f"solution_{str(self.ids[idx]).rjust(self.l, '0')}.npy"))
-        input_time_len = int(self.ratio * solution.shape[-1])
+        input_time_len = self.input_time_len
         input, label = solution[..., :input_time_len], solution[..., input_time_len:]
         if self.transform is not None:
             input, label = self.transform((input, label))
@@ -170,18 +166,17 @@ class Data(object):
         train_ids, val_ids, test_ids = self.get_ids()
         train_dataloader, val_dataloader, test_dataloader = None, None, None
         transforms_train, transforms_val, transforms_test = self.get_transforms()
-        input_output_ratio = self.t_in / (self.t_in + self.t_out)
 
         if len(train_ids) > 0:
-            train_dataset = PDEDataset(self.path, train_ids, l, input_output_ratio, transforms_train)
+            train_dataset = PDEDataset(self.path, train_ids, l, self.t_in, transforms_train)
             train_dataloader = torch_data.DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
 
         if len(val_ids) > 0:
-            val_dataset = PDEDataset(self.path, val_ids, l, input_output_ratio, transforms_val)
+            val_dataset = PDEDataset(self.path, val_ids, l, self.t_in, transforms_val)
             val_dataloader = torch_data.DataLoader(val_dataset, batch_size=self.batch_size, shuffle=False)
 
         if len(test_ids) > 0:
-            test_dataset = PDEDataset(self.path, test_ids, l, input_output_ratio, transforms_test)
+            test_dataset = PDEDataset(self.path, test_ids, l, self.t_in, transforms_test)
             test_dataloader = torch_data.DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 
         return train_dataloader, val_dataloader, test_dataloader
