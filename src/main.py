@@ -1,5 +1,6 @@
 import torch
 from neural_fourier import FourierNet2d, FourierNet3d, SpatialNet2d
+from unet import UNet
 from train import Trainer
 from data import Data
 from utils import parse_args, dump_config, mkdirs
@@ -72,7 +73,11 @@ def main():
     elif args['net_arch'] == '2d_spatial':
         net_class = SpatialNet2d
         n_modes = -1
-        kwargs = {'kernel_size' : args['kernel_size'], 'padding': args['padding']}
+        kwargs = {'kernel_size': args['kernel_size'], 'padding': args['padding']}
+    elif args['net_arch'] == 'unet':
+        net_class = UNet
+        n_modes = -1
+        kwargs = {'kernel_size': args['kernel_size'], 'padding': args['padding']}
     else:
         raise ValueError(f'Unknown net_arch: {args["net_arch"]}')
 
