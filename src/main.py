@@ -46,7 +46,7 @@ def get_default_args():
         "device": "cuda",
         "experiments": "../experiments",
         "datasets": "../datasets",
-        "make_determenistic": "false"
+        "make_deterministic": "false"
     }
 
     return default_args
@@ -76,7 +76,7 @@ def main():
     else:
         raise ValueError(f'Unknown net_arch: {args["net_arch"]}')
 
-    if args['make_determenistic'] == 'true':
+    if args['make_deterministic'] == 'true':
         fix_seed(args['seed'])
 
     net = net_class(args['n_layers'], n_modes, args['width'], args['t_in'], args['t_out'],
