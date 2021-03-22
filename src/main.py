@@ -77,7 +77,7 @@ def main():
         raise ValueError(f'Unknown net_arch: {args["net_arch"]}')
 
     if args['make_determenistic'] == 'true':
-        fix_seed()
+        fix_seed(args['seed'])
 
     net = net_class(args['n_layers'], n_modes, args['width'], args['t_in'], args['t_out'],
                     args['pad_coordinates'] == "true", **kwargs).to(args['device'])
