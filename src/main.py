@@ -42,7 +42,6 @@ def get_default_args():
 
 
 def main():
-    torch.manual_seed(0)
     config = sys.argv[1]
     args = parse_args(config)
     args = {**get_default_args(), **args}
