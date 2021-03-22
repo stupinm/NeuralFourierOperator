@@ -17,5 +17,5 @@
     "t_out": 40,
     "val_ratio": 0.1,
     "test_ratio": 0.2,
-    "num_samples": 2400
+    "num_samples": 2000
 }
